@@ -1,4 +1,4 @@
-.PHONY: install install-dev lint format type-check check clean help
+.PHONY: install install-dev lint format type-check check clean help run run-verbose run-quiet
 
 PYTHON := python
 UV := uv
@@ -31,6 +31,16 @@ clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
+# Run pipeline
+run:
+	$(PYTHON) main.py
+
+run-verbose:
+	$(PYTHON) main.py --verbose
+
+run-quiet:
+	$(PYTHON) main.py --quiet
+
 # Help
 help:
 	@echo "Available targets:"
@@ -41,3 +51,6 @@ help:
 	@echo "  type-check   Run mypy type checker"
 	@echo "  check        Run all checks (lint + type-check)"
 	@echo "  clean        Remove cache files"
+	@echo "  run          Run the optimization pipeline"
+	@echo "  run-verbose  Run with detailed output"
+	@echo "  run-quiet    Run with minimal output"
