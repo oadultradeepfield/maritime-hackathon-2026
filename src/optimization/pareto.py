@@ -1,6 +1,7 @@
 """Pareto frontier analysis for fleet optimization."""
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pandas as pd
@@ -14,6 +15,7 @@ def run_pareto_analysis(
     safety_min: float = 3.0,
     safety_max: float = 5.0,
     step: float = 0.1,
+    on_progress: Callable[[int, int], None] | None = None,
 ) -> list[ParetoPoint]:
     """Run Pareto analysis by varying safety constraint.
 
@@ -25,13 +27,15 @@ def run_pareto_analysis(
         safety_min: Minimum safety threshold to test
         safety_max: Maximum safety threshold to test
         step: Step size for safety threshold
+        on_progress: Optional callback(current, total) for progress updates
 
     Returns:
         List of ParetoPoint dictionaries representing the frontier
     """
     points: list[ParetoPoint] = []
     prev_cost: float | None = None
-
+    total_steps = int((safety_max - safety_min) / step) + 1
+    current_step = 0
     threshold = safety_min
     while threshold <= safety_max + 1e-9:  # Small epsilon for float comparison
         params = OptimizationParams(
@@ -57,6 +61,10 @@ def run_pareto_analysis(
         points.append(point)
 
         prev_cost = result.total_cost if result.solver_status == "Optimal" else None
+
+        current_step += 1
+        if on_progress is not None:
+            on_progress(current_step, total_steps)
 
         threshold += step
 

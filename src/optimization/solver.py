@@ -12,6 +12,12 @@ def _create_problem(
 ) -> tuple[pulp.LpProblem, dict[str, pulp.LpVariable]]:
     """Create the MILP problem with decision variables and constraints.
 
+    Constraints:
+        1. DWT requirement: Total fleet DWT must meet minimum threshold
+        2. Safety score: Uses linearized form sum((safety_i - threshold) * x_i) >= 0,
+           which is equivalent to requiring average safety >= threshold
+        3. Fuel type diversity: If enabled, at least one vessel per fuel type
+
     Returns:
         Tuple of (problem, decision_variables_dict)
     """
@@ -33,14 +39,11 @@ def _create_problem(
 
     prob += pulp.lpSum(cost_lookup[vid] * x[vid] for vid in vessel_ids)
 
-    # Constraint 1: DWT requirement
     prob += (
         pulp.lpSum(dwt_lookup[vid] * x[vid] for vid in vessel_ids) >= params.min_dwt,
         "min_dwt",
     )
 
-    # Constraint 2: Linearized safety score constraint
-    # sum((safety_i - threshold) * x_i) >= 0 is equivalent to avg >= threshold
     prob += (
         pulp.lpSum(
             (safety_lookup[vid] - params.min_avg_safety) * x[vid] for vid in vessel_ids
@@ -49,7 +52,6 @@ def _create_problem(
         "min_avg_safety",
     )
 
-    # Constraint 3: Fuel type diversity (one constraint per fuel type)
     if params.require_all_fuel_types:
         fuel_types = vessel_df["main_engine_fuel_type"].unique()
         for fuel_type in fuel_types:
