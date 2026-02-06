@@ -10,6 +10,7 @@ from src.optimization.types import (
     HeatmapCell,
     MCMCResult,
     OptimizationResult,
+    ParetoPoint,
     ShapleyResult,
 )
 
@@ -239,3 +240,60 @@ def export_mcmc_results_json(
 
     with (output_dir / "mcmc_robustness.json").open("w") as f:
         json.dump(output, f, indent=2)
+
+
+def export_sensitivity_comparison_csv(
+    pareto_points: list[ParetoPoint],
+    vessel_df: pd.DataFrame,
+    output_dir: Path,
+) -> None:
+    """Export comparison between baseline (safety >= 3.0) and sensitivity (safety >= 4.0)."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    baseline = next((p for p in pareto_points if p["safety_threshold"] == 3.0), None)
+    sensitivity = next((p for p in pareto_points if p["safety_threshold"] == 4.0), None)
+
+    if baseline is None or sensitivity is None:
+        return
+
+    baseline_vessels = vessel_df[
+        vessel_df["vessel_id"].isin(baseline["fleet_vessel_ids"])
+    ]
+    sensitivity_vessels = vessel_df[
+        vessel_df["vessel_id"].isin(sensitivity["fleet_vessel_ids"])
+    ]
+
+    comparison = {
+        "metric": [
+            "total_cost",
+            "fleet_size",
+            "total_co2eq",
+            "avg_safety_score",
+            "total_dwt",
+            "total_fuel",
+        ],
+        "baseline_3.0": [
+            baseline["total_cost"],
+            baseline["fleet_size"],
+            baseline["total_co2eq"],
+            baseline_vessels["safety_score"].mean(),
+            baseline_vessels["dwt"].sum(),
+            baseline_vessels["total_fuel"].sum(),
+        ],
+        "sensitivity_4.0": [
+            sensitivity["total_cost"],
+            sensitivity["fleet_size"],
+            sensitivity["total_co2eq"],
+            sensitivity_vessels["safety_score"].mean(),
+            sensitivity_vessels["dwt"].sum(),
+            sensitivity_vessels["total_fuel"].sum(),
+        ],
+    }
+
+    comparison_df = pd.DataFrame(comparison)
+    comparison_df["delta_pct"] = (
+        (comparison_df["sensitivity_4.0"] - comparison_df["baseline_3.0"])
+        / comparison_df["baseline_3.0"]
+        * 100
+    ).round(2)
+    comparison_df.to_csv(output_dir / "sensitivity_comparison.csv", index=False)

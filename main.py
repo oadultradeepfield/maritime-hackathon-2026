@@ -38,6 +38,7 @@ from src.output import (
     export_fleet_result_json,
     export_fuel_type_summary_json,
     export_mcmc_results_json,
+    export_sensitivity_comparison_csv,
     export_sensitivity_heatmap_json,
     export_shapley_values_json,
     export_submission_csv,
@@ -309,6 +310,9 @@ def main() -> None:
 
     save_pareto_frontier(pareto_points, args.output_dir / "pareto_frontier.json")
     print_success(f"Generated {len(pareto_points)} Pareto points")
+
+    export_sensitivity_comparison_csv(pareto_points, vessel_data, args.output_dir)
+    print_success("Saved sensitivity_comparison.csv")
 
     _run_sensitivity_analyses(vessel_data, result, args.output_dir)
 
