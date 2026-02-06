@@ -242,27 +242,13 @@ def export_mcmc_results_json(
         json.dump(output, f, indent=2)
 
 
-def export_sensitivity_comparison_csv(
-    pareto_points: list[ParetoPoint],
-    vessel_df: pd.DataFrame,
-    output_dir: Path,
-) -> None:
-    """Export comparison between baseline (safety >= 3.0) and sensitivity (safety >= 4.0)."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    baseline = next((p for p in pareto_points if p["safety_threshold"] == 3.0), None)
-    sensitivity = next((p for p in pareto_points if p["safety_threshold"] == 4.0), None)
-
-    if baseline is None or sensitivity is None:
-        return
-
-    baseline_vessels = vessel_df[
-        vessel_df["vessel_id"].isin(baseline["fleet_vessel_ids"])
-    ]
-    sensitivity_vessels = vessel_df[
-        vessel_df["vessel_id"].isin(sensitivity["fleet_vessel_ids"])
-    ]
-
+def _compute_comparison_metrics(
+    baseline_vessels: pd.DataFrame,
+    sensitivity_vessels: pd.DataFrame,
+    baseline: ParetoPoint,
+    sensitivity: ParetoPoint,
+) -> pd.DataFrame:
+    """Compute comparison metrics between baseline and sensitivity scenarios."""
     comparison = {
         "metric": [
             "total_cost",
@@ -296,4 +282,31 @@ def export_sensitivity_comparison_csv(
         / comparison_df["baseline_3.0"]
         * 100
     ).round(2)
+    return comparison_df
+
+
+def export_sensitivity_comparison_csv(
+    pareto_points: list[ParetoPoint],
+    vessel_df: pd.DataFrame,
+    output_dir: Path,
+) -> None:
+    """Export comparison between baseline (safety >= 3.0) and sensitivity (safety >= 4.0)."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    baseline = next((p for p in pareto_points if p["safety_threshold"] == 3.0), None)
+    sensitivity = next((p for p in pareto_points if p["safety_threshold"] == 4.0), None)
+
+    if baseline is None or sensitivity is None:
+        return
+
+    baseline_vessels = vessel_df[
+        vessel_df["vessel_id"].isin(baseline["fleet_vessel_ids"])
+    ]
+    sensitivity_vessels = vessel_df[
+        vessel_df["vessel_id"].isin(sensitivity["fleet_vessel_ids"])
+    ]
+
+    comparison_df = _compute_comparison_metrics(
+        baseline_vessels, sensitivity_vessels, baseline, sensitivity
+    )
     comparison_df.to_csv(output_dir / "sensitivity_comparison.csv", index=False)

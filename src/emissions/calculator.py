@@ -73,29 +73,19 @@ def calculate_emissions(
             )
         )
 
-    cf_co2_me = get_cf_series(result["main_engine_fuel_type"], "CO2")
-    cf_n2o_me = get_cf_series(result["main_engine_fuel_type"], "N2O")
-    cf_ch4_me = get_cf_series(result["main_engine_fuel_type"], "CH4")
+    machinery_config = [
+        ("main_engine_fuel_type", "me"),
+        ("aux_engine_fuel_type", "ae"),
+        ("boil_engine_fuel_type", "abl"),
+    ]
+    llaf_map = {"CO2": llaf_co2, "N2O": llaf_n2o, "CH4": llaf_ch4}
 
-    cf_co2_ae = get_cf_series(result["aux_engine_fuel_type"], "CO2")
-    cf_n2o_ae = get_cf_series(result["aux_engine_fuel_type"], "N2O")
-    cf_ch4_ae = get_cf_series(result["aux_engine_fuel_type"], "CH4")
-
-    cf_co2_abl = get_cf_series(result["boil_engine_fuel_type"], "CO2")
-    cf_n2o_abl = get_cf_series(result["boil_engine_fuel_type"], "N2O")
-    cf_ch4_abl = get_cf_series(result["boil_engine_fuel_type"], "CH4")
-
-    result["co2_me"] = llaf_co2 * cf_co2_me * result["fuel_me"]
-    result["co2_ae"] = llaf_co2 * cf_co2_ae * result["fuel_ae"]
-    result["co2_abl"] = llaf_co2 * cf_co2_abl * result["fuel_abl"]
-
-    result["n2o_me"] = llaf_n2o * cf_n2o_me * result["fuel_me"]
-    result["n2o_ae"] = llaf_n2o * cf_n2o_ae * result["fuel_ae"]
-    result["n2o_abl"] = llaf_n2o * cf_n2o_abl * result["fuel_abl"]
-
-    result["ch4_me"] = llaf_ch4 * cf_ch4_me * result["fuel_me"]
-    result["ch4_ae"] = llaf_ch4 * cf_ch4_ae * result["fuel_ae"]
-    result["ch4_abl"] = llaf_ch4 * cf_ch4_abl * result["fuel_abl"]
+    for fuel_col, suffix in machinery_config:
+        for gas in ["CO2", "N2O", "CH4"]:
+            cf_series = get_cf_series(result[fuel_col], gas)
+            result[f"{gas.lower()}_{suffix}"] = (
+                llaf_map[gas] * cf_series * result[f"fuel_{suffix}"]
+            )
 
     total_co2 = result["co2_me"] + result["co2_ae"] + result["co2_abl"]
     total_n2o = result["n2o_me"] + result["n2o_ae"] + result["n2o_abl"]
