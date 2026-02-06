@@ -34,3 +34,40 @@ class ParetoPoint(TypedDict):
     fleet_size: int
     fleet_vessel_ids: list[str]
     shadow_price: float | None
+
+
+class CarbonSensitivityPoint(TypedDict):
+    """Result from carbon price sensitivity analysis."""
+
+    carbon_price: float
+    total_cost: float
+    total_co2eq: float
+    fleet_size: int
+    fleet_vessel_ids: list[str]
+
+
+class HeatmapCell(TypedDict):
+    """A cell in the sensitivity heatmap grid."""
+
+    carbon_price: float
+    safety_threshold: float
+    total_cost: float
+    fleet_size: int
+    feasible: bool
+
+
+class ShapleyResult(TypedDict):
+    """Shapley value for a vessel in the optimal fleet."""
+
+    vessel_id: str
+    shapley_value: float
+    rank: int
+    category: str
+
+
+class MCMCResult(TypedDict):
+    """MCMC robustness analysis result for a vessel."""
+
+    vessel_id: str
+    appearance_frequency: float
+    category: str
