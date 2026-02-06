@@ -13,14 +13,14 @@ install-dev:
 
 # Code quality
 lint:
-	ruff check src
+	ruff check src main.py
 
 format:
-	ruff format src
-	ruff check --fix src
+	ruff format src main.py
+	ruff check --fix src main.py
 
 type-check:
-	mypy src
+	mypy src main.py
 
 check: lint type-check
 
