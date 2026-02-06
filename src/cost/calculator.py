@@ -132,8 +132,19 @@ def calculate_costs(df: pd.DataFrame, factors: CalculationFactors) -> pd.DataFra
     fuel_cost_lookup = _build_fuel_cost_lookup(factors.fuel_cost)
     base_costs, multipliers = _parse_ship_cost_table(factors.ship_cost)
 
-    cost_per_tonne = result["main_engine_fuel_type"].str.lower().map(fuel_cost_lookup)
-    result["fuel_cost_usd"] = result["total_fuel"] * cost_per_tonne
+    cost_per_tonne_me = (
+        result["main_engine_fuel_type"].str.lower().map(fuel_cost_lookup)
+    )
+    cost_per_tonne_ae = result["aux_engine_fuel_type"].str.lower().map(fuel_cost_lookup)
+    cost_per_tonne_abl = (
+        result["boil_engine_fuel_type"].str.lower().map(fuel_cost_lookup)
+    )
+
+    result["fuel_cost_usd"] = (
+        result["total_fuel_me"] * cost_per_tonne_me
+        + result["total_fuel_ae"] * cost_per_tonne_ae
+        + result["total_fuel_abl"] * cost_per_tonne_abl
+    )
 
     result["carbon_cost_usd"] = result["total_co2eq"] * CARBON_PRICE_USD_PER_TCO2
 
