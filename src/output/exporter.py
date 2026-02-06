@@ -31,9 +31,6 @@ def export_submission_csv(
     avg_safety = selected["safety_score"].mean()
 
     submission = {
-        "team_name": "TeamName",
-        "category": "Open",
-        "report_file_name": "report.pdf",
         "sum_of_fleet_deadweight": int(result.total_dwt),
         "total_cost_of_fleet": round(result.total_cost, 2),
         "average_fleet_safety_score": round(avg_safety, 2),
