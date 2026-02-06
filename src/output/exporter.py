@@ -27,8 +27,7 @@ def export_submission_csv(
 
     selected = vessel_df[vessel_df["vessel_id"].isin(result.selected_vessel_ids)]
 
-    total_dwt = selected["dwt"].sum()
-    weighted_safety = (selected["safety_score"] * selected["dwt"]).sum() / total_dwt
+    avg_safety = selected["safety_score"].mean()
 
     submission = {
         "team_name": "TeamName",
@@ -36,7 +35,7 @@ def export_submission_csv(
         "report_file_name": "report.pdf",
         "sum_of_fleet_deadweight": int(result.total_dwt),
         "total_cost_of_fleet": round(result.total_cost, 2),
-        "average_fleet_safety_score": round(weighted_safety, 2),
+        "average_fleet_safety_score": round(avg_safety, 2),
         "no_of_unique_main_engine_fuel_types_in_fleet": result.fuel_types_count,
         "sensitivity_analysis_performance": "Yes",
         "size_of_fleet_count": result.fleet_size,
