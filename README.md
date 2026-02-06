@@ -19,6 +19,13 @@ git clone https://github.com/oadultradeepfield/maritime-hackathon-2026.git
 cd maritime-hackathon-2026
 ```
 
+Create and activate a virtual environment:
+
+```bash
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
 Install dependencies:
 
 ```bash
@@ -36,7 +43,7 @@ make install-dev
 The dataset is not included in this repository. Place the following files in the `dataset/` folder:
 
 | File                           | Description                                    |
-|--------------------------------|------------------------------------------------|
+| ------------------------------ | ---------------------------------------------- |
 | `vessel_movements_dataset.csv` | AIS data with 13K+ vessel movement records     |
 | `calculation_factors.xlsx`     | Cf factors, LCV values, fuel costs, ship costs |
 | `llaf_table.csv`               | Low Load Adjustment Factors for emissions      |
@@ -59,7 +66,7 @@ cat output/submission.csv
 ## Commands
 
 | Command            | Description                 |
-|--------------------|-----------------------------|
+| ------------------ | --------------------------- |
 | `make run`         | Run optimization pipeline   |
 | `make run-verbose` | Run with detailed output    |
 | `make run-quiet`   | Run with minimal output     |
@@ -73,7 +80,7 @@ cat output/submission.csv
 Results are written to `output/`:
 
 | File                         | Description                                      |
-|------------------------------|--------------------------------------------------|
+| ---------------------------- | ------------------------------------------------ |
 | `submission.csv`             | Hackathon submission with fleet metrics          |
 | `fleet_result.json`          | Selected vessels and optimization summary        |
 | `pareto_frontier.json`       | Pareto points from epsilon-constraint method     |
