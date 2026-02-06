@@ -32,7 +32,6 @@ def run_pareto_analysis(
     points: list[ParetoPoint] = []
     prev_cost: float | None = None
 
-    # Generate safety thresholds from min to max (inclusive)
     threshold = safety_min
     while threshold <= safety_max + 1e-9:  # Small epsilon for float comparison
         params = OptimizationParams(

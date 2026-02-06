@@ -17,11 +17,9 @@ def _create_problem(
     """
     prob = pulp.LpProblem("Fleet_Selection", pulp.LpMinimize)
 
-    # Create binary decision variables for each vessel
     vessel_ids = vessel_df["vessel_id"].tolist()
     x = {vid: pulp.LpVariable(f"x_{vid}", cat=pulp.LpBinary) for vid in vessel_ids}
 
-    # Build lookup dictionaries for vessel attributes
     cost_lookup = dict(
         zip(vessel_df["vessel_id"], vessel_df["adjusted_cost_usd"], strict=True)
     )
@@ -33,7 +31,6 @@ def _create_problem(
         zip(vessel_df["vessel_id"], vessel_df["main_engine_fuel_type"], strict=True)
     )
 
-    # Objective: Minimize total adjusted cost
     prob += pulp.lpSum(cost_lookup[vid] * x[vid] for vid in vessel_ids)
 
     # Constraint 1: DWT requirement
@@ -73,13 +70,10 @@ def _extract_result(
     vessel_df: pd.DataFrame,
 ) -> OptimizationResult:
     """Extract optimization result from solved problem."""
-    # Get selected vessel IDs
     selected_ids = [vid for vid, var in x.items() if var.varValue == 1]
 
-    # Filter to selected vessels
     selected_df = vessel_df[vessel_df["vessel_id"].isin(selected_ids)]
 
-    # Calculate metrics
     total_cost = selected_df["adjusted_cost_usd"].sum()
     total_dwt = selected_df["dwt"].sum()
     avg_safety = selected_df["safety_score"].mean()
