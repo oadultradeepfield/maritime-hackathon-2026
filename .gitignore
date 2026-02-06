@@ -132,3 +132,7 @@ site/
 
 # Agents
 .agents/
+plans/
+
+# Output artifacts
+/output/
