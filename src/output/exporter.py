@@ -5,7 +5,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.optimization.types import OptimizationResult
+from src.optimization.types import (
+    CarbonSensitivityPoint,
+    HeatmapCell,
+    MCMCResult,
+    OptimizationResult,
+    ShapleyResult,
+)
 
 
 def export_submission_csv(
@@ -54,7 +60,6 @@ def export_fleet_result_json(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     selected_ids = set(result.selected_vessel_ids)
-
     vessels = []
     for _, row in vessel_df.iterrows():
         vessel = {
@@ -126,4 +131,112 @@ def export_fuel_type_summary_json(
     output = {"fuel_types": fuel_types}
 
     with (output_dir / "fuel_type_summary.json").open("w") as f:
+        json.dump(output, f, indent=2)
+
+
+def export_shapley_values_json(
+    results: list[ShapleyResult],
+    output_dir: Path,
+) -> None:
+    """Export Shapley value analysis results as JSON.
+
+    Creates shapley_values.json with per-vessel Shapley values and summary.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    total_shapley = sum(r["shapley_value"] for r in results)
+    essential_count = sum(1 for r in results if r["category"] == "essential")
+    useful_count = sum(1 for r in results if r["category"] == "useful")
+    marginal_count = sum(1 for r in results if r["category"] == "marginal")
+
+    output = {
+        "summary": {
+            "total_shapley_value": round(total_shapley, 2),
+            "vessel_count": len(results),
+            "essential_count": essential_count,
+            "useful_count": useful_count,
+            "marginal_count": marginal_count,
+        },
+        "vessels": results,
+    }
+
+    with (output_dir / "shapley_values.json").open("w") as f:
+        json.dump(output, f, indent=2)
+
+
+def export_sensitivity_heatmap_json(
+    cells: list[HeatmapCell],
+    output_dir: Path,
+) -> None:
+    """Export sensitivity heatmap results as JSON.
+
+    Creates sensitivity_heatmap.json with grid of optimization results.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    feasible_count = sum(1 for c in cells if c["feasible"])
+    carbon_prices = sorted({c["carbon_price"] for c in cells})
+    safety_thresholds = sorted({c["safety_threshold"] for c in cells})
+
+    output = {
+        "summary": {
+            "total_cells": len(cells),
+            "feasible_cells": feasible_count,
+            "carbon_prices": carbon_prices,
+            "safety_thresholds": safety_thresholds,
+        },
+        "cells": cells,
+    }
+
+    with (output_dir / "sensitivity_heatmap.json").open("w") as f:
+        json.dump(output, f, indent=2)
+
+
+def export_carbon_sensitivity_json(
+    points: list[CarbonSensitivityPoint],
+    output_dir: Path,
+) -> None:
+    """Export carbon price sensitivity analysis results as JSON.
+
+    Creates carbon_sensitivity.json with results at different carbon prices.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output = {
+        "summary": {
+            "num_points": len(points),
+            "carbon_prices": [p["carbon_price"] for p in points],
+        },
+        "points": points,
+    }
+
+    with (output_dir / "carbon_sensitivity.json").open("w") as f:
+        json.dump(output, f, indent=2)
+
+
+def export_mcmc_results_json(
+    results: list[MCMCResult],
+    output_dir: Path,
+) -> None:
+    """Export MCMC robustness analysis results as JSON.
+
+    Creates mcmc_robustness.json with vessel appearance frequencies.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    essential_count = sum(1 for r in results if r["category"] == "essential")
+    stable_count = sum(1 for r in results if r["category"] == "stable")
+    variable_count = sum(1 for r in results if r["category"] == "variable")
+
+    output = {
+        "summary": {
+            "vessel_count": len(results),
+            "essential_count": essential_count,
+            "stable_count": stable_count,
+            "variable_count": variable_count,
+        },
+        "vessels": results,
+    }
+
+    with (output_dir / "mcmc_robustness.json").open("w") as f:
         json.dump(output, f, indent=2)
