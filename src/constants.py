@@ -1,0 +1,23 @@
+"""Constants and magic numbers for maritime emissions calculations."""
+
+MONTHLY_DEMAND_TONNES = 4_576_667
+CARBON_PRICE_USD_PER_TCO2 = 80
+DISCOUNT_RATE = 0.08
+SHIP_LIFETIME_YEARS = 30
+SALVAGE_RATE = 0.10
+REFERENCE_LCV_MJ_PER_KG = 42.7
+MAX_SPEED_MULTIPLIER = 1.066
+
+GWP_CO2 = 1
+GWP_N2O = 265
+GWP_CH4 = 28
+
+SAFETY_SCORE_ADJUSTMENTS = {
+    1: 0.10,
+    2: 0.05,
+    3: 0.00,
+    4: -0.02,
+    5: -0.05,
+}
+
+LOAD_FACTOR_FLOOR = 0.02
