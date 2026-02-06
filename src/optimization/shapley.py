@@ -66,6 +66,40 @@ def _categorize_shapley_value(
         return "marginal"
 
 
+def _sample_permutation_contributions(
+    vessel_df: pd.DataFrame,
+    optimal_fleet_ids: list[str],
+    num_permutations: int,
+    params: OptimizationParams,
+    infeasible_penalty: float,
+    on_progress: Callable[[int, int], None] | None,
+) -> dict[str, float]:
+    """Sample marginal contributions via random permutations."""
+    marginal_contributions: dict[str, float] = dict.fromkeys(optimal_fleet_ids, 0.0)
+
+    for perm_idx in range(num_permutations):
+        permutation = optimal_fleet_ids.copy()
+        random.shuffle(permutation)
+
+        coalition: set[str] = set()
+        prev_cost = _compute_coalition_cost(
+            vessel_df, coalition, params, infeasible_penalty
+        )
+
+        for vessel_id in permutation:
+            coalition.add(vessel_id)
+            current_cost = _compute_coalition_cost(
+                vessel_df, coalition, params, infeasible_penalty
+            )
+            marginal_contributions[vessel_id] += prev_cost - current_cost
+            prev_cost = current_cost
+
+        if on_progress is not None:
+            on_progress(perm_idx + 1, num_permutations)
+
+    return marginal_contributions
+
+
 def compute_shapley_values(
     vessel_df: pd.DataFrame,
     optimal_fleet_ids: list[str],
@@ -103,40 +137,22 @@ def compute_shapley_values(
         random.seed(seed)
 
     infeasible_penalty = vessel_df["adjusted_cost_usd"].sum() * 2
-    marginal_contributions: dict[str, float] = dict.fromkeys(optimal_fleet_ids, 0.0)
 
-    for perm_idx in range(num_permutations):
-        permutation = optimal_fleet_ids.copy()
-        random.shuffle(permutation)
-
-        coalition: set[str] = set()
-        prev_cost = _compute_coalition_cost(
-            vessel_df, coalition, params, infeasible_penalty
-        )
-
-        for vessel_id in permutation:
-            coalition.add(vessel_id)
-            current_cost = _compute_coalition_cost(
-                vessel_df, coalition, params, infeasible_penalty
-            )
-            marginal_contribution = prev_cost - current_cost
-            marginal_contributions[vessel_id] += marginal_contribution
-            prev_cost = current_cost
-
-        if on_progress is not None:
-            on_progress(perm_idx + 1, num_permutations)
+    marginal_contributions = _sample_permutation_contributions(
+        vessel_df,
+        optimal_fleet_ids,
+        num_permutations,
+        params,
+        infeasible_penalty,
+        on_progress,
+    )
 
     shapley_values = {
         vid: contrib / num_permutations
         for vid, contrib in marginal_contributions.items()
     }
 
-    sorted_vessels = sorted(
-        shapley_values.items(),
-        key=lambda x: x[1],
-        reverse=True,
-    )
-
+    sorted_vessels = sorted(shapley_values.items(), key=lambda x: x[1], reverse=True)
     max_value = sorted_vessels[0][1] if sorted_vessels else 0.0
 
     results: list[ShapleyResult] = []

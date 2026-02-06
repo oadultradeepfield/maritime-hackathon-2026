@@ -61,6 +61,50 @@ def _categorize_appearance(frequency: float) -> str:
         return "variable"
 
 
+def _run_mcmc_sampling(
+    vessel_df: pd.DataFrame,
+    all_vessel_ids: list[str],
+    optimal_fleet_ids: list[str],
+    initial_fleet: set[str],
+    initial_cost: float,
+    num_iterations: int,
+    beta: float,
+    params: OptimizationParams,
+    on_progress: Callable[[int, int], None] | None,
+) -> dict[str, int]:
+    """Run MCMC sampling and return appearance counts."""
+    current_fleet = initial_fleet
+    current_cost = initial_cost
+    appearance_counts: dict[str, int] = dict.fromkeys(optimal_fleet_ids, 0)
+
+    for iteration in range(num_iterations):
+        vessel_to_flip = random.choice(all_vessel_ids)
+
+        proposed_fleet = current_fleet.copy()
+        if vessel_to_flip in proposed_fleet:
+            proposed_fleet.remove(vessel_to_flip)
+        else:
+            proposed_fleet.add(vessel_to_flip)
+
+        if _is_fleet_feasible(vessel_df, proposed_fleet, params):
+            proposed_cost = _compute_fleet_cost(vessel_df, proposed_fleet)
+            cost_diff = proposed_cost - current_cost
+            acceptance_prob = 1.0 if cost_diff <= 0 else math.exp(-beta * cost_diff)
+
+            if random.random() < acceptance_prob:
+                current_fleet = proposed_fleet
+                current_cost = proposed_cost
+
+        for vid in optimal_fleet_ids:
+            if vid in current_fleet:
+                appearance_counts[vid] += 1
+
+        if on_progress is not None and (iteration + 1) % 100 == 0:
+            on_progress(iteration + 1, num_iterations)
+
+    return appearance_counts
+
+
 def run_mcmc_robustness(
     vessel_df: pd.DataFrame,
     optimal_fleet_ids: list[str],
@@ -101,43 +145,24 @@ def run_mcmc_robustness(
         random.seed(seed)
 
     all_vessel_ids = vessel_df["vessel_id"].tolist()
-    current_fleet = set(optimal_fleet_ids)
-    current_cost = _compute_fleet_cost(vessel_df, current_fleet)
-    appearance_counts: dict[str, int] = dict.fromkeys(optimal_fleet_ids, 0)
-    sample_count = 0
+    initial_fleet = set(optimal_fleet_ids)
+    initial_cost = _compute_fleet_cost(vessel_df, initial_fleet)
 
-    for iteration in range(num_iterations):
-        vessel_to_flip = random.choice(all_vessel_ids)
-
-        proposed_fleet = current_fleet.copy()
-        if vessel_to_flip in proposed_fleet:
-            proposed_fleet.remove(vessel_to_flip)
-        else:
-            proposed_fleet.add(vessel_to_flip)
-
-        if _is_fleet_feasible(vessel_df, proposed_fleet, params):
-            proposed_cost = _compute_fleet_cost(vessel_df, proposed_fleet)
-            cost_diff = proposed_cost - current_cost
-
-            acceptance_prob = 1.0 if cost_diff <= 0 else math.exp(-beta * cost_diff)
-
-            if random.random() < acceptance_prob:
-                current_fleet = proposed_fleet
-                current_cost = proposed_cost
-
-        for vid in optimal_fleet_ids:
-            if vid in current_fleet:
-                appearance_counts[vid] += 1
-        sample_count += 1
-
-        if on_progress is not None and (iteration + 1) % 100 == 0:
-            on_progress(iteration + 1, num_iterations)
+    appearance_counts = _run_mcmc_sampling(
+        vessel_df,
+        all_vessel_ids,
+        optimal_fleet_ids,
+        initial_fleet,
+        initial_cost,
+        num_iterations,
+        beta,
+        params,
+        on_progress,
+    )
 
     results: list[MCMCResult] = []
     for vessel_id in optimal_fleet_ids:
-        frequency = (
-            appearance_counts[vessel_id] / sample_count if sample_count > 0 else 0.0
-        )
+        frequency = appearance_counts[vessel_id] / num_iterations
         category = _categorize_appearance(frequency)
         result: MCMCResult = {
             "vessel_id": vessel_id,
