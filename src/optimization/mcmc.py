@@ -1,4 +1,8 @@
-"""MCMC robustness analysis for fleet optimization."""
+"""MCMC robustness analysis for fleet optimization.
+
+Use run_mcmc_robustness() as the entry point. Implementation details
+(formulas, lookup rules) live in the code itself.
+"""
 
 import json
 import math
@@ -46,13 +50,7 @@ def _compute_fleet_cost(vessel_df: pd.DataFrame, fleet_ids: set[str]) -> float:
 
 
 def _categorize_appearance(frequency: float) -> str:
-    """Categorize a vessel based on its appearance frequency.
-
-    Categories:
-        - essential: Appears in >90% of sampled fleets
-        - stable: Appears in 50-90% of sampled fleets
-        - variable: Appears in <50% of sampled fleets
-    """
+    """Categorize a vessel based on its appearance frequency."""
     if frequency >= 0.9:
         return "essential"
     elif frequency >= 0.5:
@@ -119,24 +117,6 @@ def run_mcmc_robustness(
     Explores near-optimal fleet configurations to identify which vessels
     consistently appear in good solutions (essential) vs those that are
     easily substitutable (variable).
-
-    The algorithm:
-        1. Start with the optimal fleet
-        2. Propose a new fleet by flipping one vessel's inclusion
-        3. Accept with probability min(1, exp(-beta * cost_increase))
-        4. Track vessel appearance frequencies
-
-    Args:
-        vessel_df: DataFrame with vessel data
-        optimal_fleet_ids: List of vessel IDs in the optimal fleet
-        num_iterations: Number of MCMC iterations
-        beta: Inverse temperature parameter (higher = stricter acceptance)
-        params: Optimization parameters (uses defaults if None)
-        on_progress: Optional callback(current, total) for progress updates
-        seed: Random seed for reproducibility
-
-    Returns:
-        List of MCMCResult dictionaries for vessels in optimal fleet
     """
     if params is None:
         params = OptimizationParams()

@@ -1,4 +1,8 @@
-"""Cost calculation for per-vessel data."""
+"""Cost calculation for per-vessel data.
+
+Use calculate_costs() as the entry point. Implementation details
+(formulas, lookup rules) live in the code itself.
+"""
 
 import pandas as pd
 
@@ -13,11 +17,7 @@ from src.data.loader import CalculationFactors
 
 
 def _build_fuel_cost_lookup(fuel_cost_table: pd.DataFrame) -> dict[str, float]:
-    """Build fuel type to cost per tonne lookup.
-
-    cost_per_tonne = cost_per_GJ * LCV
-    where LCV in MJ/kg = GJ/tonne (unit conversion cancels)
-    """
+    """Build fuel type to cost per tonne lookup."""
     valid = fuel_cost_table.dropna(
         subset=["Fuel Type", "Cost per GJ (USD)", "LCV (MJ/kg)"]
     )
@@ -47,15 +47,7 @@ _FUEL_MULTIPLIER_ROW_END = 11
 def _parse_ship_cost_table(
     ship_cost_table: pd.DataFrame,
 ) -> tuple[dict[str, float], dict[str, float]]:
-    """Parse ship cost table into base costs and multipliers.
-
-    The table structure has base costs in the distillate fuel row (index 2),
-    and fuel type multipliers in rows 4-10.
-
-    Returns:
-        base_costs: dict mapping DWT bracket to base cost in million USD
-        multipliers: dict mapping fuel type to multiplier factor
-    """
+    """Parse ship cost table into base costs and fuel type multipliers."""
     base_row = ship_cost_table.iloc[_DISTILLATE_FUEL_ROW_INDEX]
     base_costs = {
         "10-40k DWT": float(base_row["Cost of ship (in million USD)"]),
@@ -77,10 +69,7 @@ def _parse_ship_cost_table(
 
 
 def _calculate_crf() -> float:
-    """Calculate Capital Recovery Factor.
-
-    CRF = r * (1+r)^N / ((1+r)^N - 1)
-    """
+    """Calculate Capital Recovery Factor."""
     r = DISCOUNT_RATE
     n = SHIP_LIFETIME_YEARS
     factor = (1 + r) ** n
@@ -95,13 +84,7 @@ def _calculate_ownership_cost(
 ) -> float:
     """Calculate monthly ownership cost for a vessel.
 
-    Formula:
-        P = P_base * M (adjusted purchase price in million USD)
-        S = SALVAGE_RATE * P (salvage value)
-        annual = (P - S) * CRF + r * S
-        monthly = annual / 12
-
-    Returns cost in USD (not millions).
+    Returns cost in USD.
     """
     bracket = _get_dwt_bracket(dwt)
     p_base = base_costs[bracket]
@@ -117,16 +100,7 @@ def _calculate_ownership_cost(
 
 
 def calculate_costs(df: pd.DataFrame, factors: CalculationFactors) -> pd.DataFrame:
-    """Calculate all cost components for per-vessel data.
-
-    Adds columns:
-        - fuel_cost_usd
-        - carbon_cost_usd
-        - ownership_cost_monthly_usd
-        - total_monthly_cost_usd
-        - risk_premium_usd
-        - adjusted_cost_usd
-    """
+    """Calculate all cost components for per-vessel data."""
     result = df.copy()
 
     fuel_cost_lookup = _build_fuel_cost_lookup(factors.fuel_cost)

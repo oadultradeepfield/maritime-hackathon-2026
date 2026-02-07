@@ -1,4 +1,8 @@
-"""MILP solver for fleet selection optimization."""
+"""MILP solver for fleet selection optimization.
+
+Use optimize_fleet() as the entry point. Implementation details
+(formulas, lookup rules) live in the code itself.
+"""
 
 import pandas as pd
 import pulp
@@ -10,17 +14,7 @@ def _create_problem(
     vessel_df: pd.DataFrame,
     params: OptimizationParams,
 ) -> tuple[pulp.LpProblem, dict[str, pulp.LpVariable]]:
-    """Create the MILP problem with decision variables and constraints.
-
-    Constraints:
-        1. DWT requirement: Total fleet DWT must meet minimum threshold
-        2. Safety score: Uses linearized form sum((safety_i - threshold) * x_i) >= 0,
-           which is equivalent to requiring average safety >= threshold
-        3. Fuel type diversity: If enabled, at least one vessel per fuel type
-
-    Returns:
-        Tuple of (problem, decision_variables_dict)
-    """
+    """Create the MILP problem with decision variables and constraints."""
     prob = pulp.LpProblem("Fleet_Selection", pulp.LpMinimize)
 
     vessel_ids = vessel_df["vessel_id"].tolist()
@@ -101,22 +95,7 @@ def optimize_fleet(
     vessel_df: pd.DataFrame,
     params: OptimizationParams | None = None,
 ) -> OptimizationResult:
-    """Optimize fleet selection using MILP.
-
-    Args:
-        vessel_df: DataFrame with vessel data including:
-            - vessel_id
-            - dwt
-            - safety_score
-            - main_engine_fuel_type
-            - adjusted_cost_usd
-            - total_co2eq
-            - total_fuel
-        params: Optimization parameters (uses defaults if None)
-
-    Returns:
-        OptimizationResult with selected vessels and metrics
-    """
+    """Optimize fleet selection using MILP."""
     if params is None:
         params = OptimizationParams()
 

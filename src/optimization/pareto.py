@@ -21,16 +21,6 @@ def run_pareto_analysis(
 
     Uses epsilon-constraint method: vary safety threshold from safety_min
     to safety_max, solving the cost minimization problem at each point.
-
-    Args:
-        vessel_df: DataFrame with vessel data
-        safety_min: Minimum safety threshold to test
-        safety_max: Maximum safety threshold to test
-        step: Step size for safety threshold
-        on_progress: Optional callback(current, total) for progress updates
-
-    Returns:
-        List of ParetoPoint dictionaries representing the frontier
     """
     points: list[ParetoPoint] = []
     prev_cost: float | None = None
@@ -72,12 +62,7 @@ def run_pareto_analysis(
 
 
 def save_pareto_frontier(points: list[ParetoPoint], output_path: Path) -> None:
-    """Save Pareto frontier points to JSON file.
-
-    Args:
-        points: List of ParetoPoint dictionaries
-        output_path: Path to output JSON file
-    """
+    """Save Pareto frontier points to JSON file."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with output_path.open("w") as f:

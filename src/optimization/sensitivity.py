@@ -19,11 +19,7 @@ def _recalculate_costs_with_carbon_price(
     vessel_df: pd.DataFrame,
     carbon_price: float,
 ) -> pd.DataFrame:
-    """Recalculate vessel costs with a different carbon price.
-
-    Updates carbon_cost_usd, total_monthly_cost_usd, risk_premium_usd,
-    and adjusted_cost_usd columns based on the new carbon price.
-    """
+    """Recalculate vessel costs with a different carbon price."""
     result = vessel_df.copy()
 
     result["carbon_cost_usd"] = result["total_co2eq"] * carbon_price
@@ -51,16 +47,8 @@ def run_carbon_sensitivity(
 ) -> list[CarbonSensitivityPoint]:
     """Run sensitivity analysis across different carbon prices.
 
-    For each carbon price, recalculates vessel costs and re-runs optimization
-    to show how the optimal fleet changes with carbon pricing.
-
-    Args:
-        vessel_df: DataFrame with vessel data including cost columns
-        carbon_prices: List of carbon prices to test (USD per tCO2)
-        on_progress: Optional callback(current, total) for progress updates
-
-    Returns:
-        List of CarbonSensitivityPoint dictionaries
+    Recalculates vessel costs and re-runs optimization at each carbon price
+    to show how the optimal fleet changes.
     """
     if carbon_prices is None:
         carbon_prices = [40, 80, 120, 160]
@@ -97,15 +85,6 @@ def run_sensitivity_heatmap(
 
     Creates a grid of optimization results showing how total cost varies
     with both carbon price and safety constraint.
-
-    Args:
-        vessel_df: DataFrame with vessel data including cost columns
-        carbon_prices: List of carbon prices to test (USD per tCO2)
-        safety_thresholds: List of safety thresholds to test
-        on_progress: Optional callback(current, total) for progress updates
-
-    Returns:
-        List of HeatmapCell dictionaries representing the grid
     """
     if carbon_prices is None:
         carbon_prices = [40, 80, 120, 160]

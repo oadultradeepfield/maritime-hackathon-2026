@@ -53,14 +53,7 @@ _GAS_COMPONENT_COLS: list[str] = [
 def aggregate_by_vessel(df: pd.DataFrame) -> pd.DataFrame:
     """Aggregate AIS data points to one row per vessel.
 
-    Filters to Transit/Maneuver modes only for sums, then groups by vessel_id.
-
-    Returns DataFrame with columns:
-        - vessel_id, vessel_type, dwt, safety_score
-        - main_engine_fuel_type, aux_engine_fuel_type, boil_engine_fuel_type
-        - total_fuel_me, total_fuel_ae, total_fuel_abl, total_fuel
-        - total_co2, total_n2o, total_ch4, total_co2eq
-        - total_activity_hours
+    Filters to Transit/Maneuver modes only, then groups by vessel_id.
     """
     active = df[df["operating_mode"].isin(["Transit", "Maneuver"])].copy()
     vessel_df = active.groupby("vessel_id", as_index=False).agg(_VESSEL_AGG_SPEC)

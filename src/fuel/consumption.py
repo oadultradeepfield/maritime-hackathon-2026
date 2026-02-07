@@ -1,4 +1,8 @@
-"""Fuel consumption calculation for vessel machinery."""
+"""Fuel consumption calculation for vessel machinery.
+
+Use calculate_fuel_consumption() as the entry point. Implementation details
+(formulas, lookup rules) live in the code itself.
+"""
 
 import pandas as pd
 
@@ -19,15 +23,7 @@ def calculate_fuel_consumption(
 ) -> pd.DataFrame:
     """Calculate fuel consumption for main engine, aux engine, and aux boiler.
 
-    Fuel consumption is only calculated for Transit and Maneuver modes.
-    Other modes have zero fuel consumption.
-
-    Formulas (in tonnes):
-        Main Engine: (LF * mep * sfc_adjusted_me * A) / 1,000,000
-        Aux Engine:  (ael * sfc_adjusted_ae * A) / 1,000,000
-        Aux Boiler:  (abl * sfc_adjusted_blr * A) / 1,000,000
-
-    Where sfc_adjusted = sfc * (42.7 / LCV)
+    Only Transit and Maneuver modes have non-zero fuel consumption.
     """
     result = df.copy()
     lcv_lookup = _build_lcv_lookup(cf_table)

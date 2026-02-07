@@ -1,4 +1,8 @@
-"""Emissions calculation for vessel machinery."""
+"""Emissions calculation for vessel machinery.
+
+Use calculate_emissions() as the entry point. Implementation details
+(formulas, lookup rules) live in the code itself.
+"""
 
 import pandas as pd
 
@@ -8,14 +12,7 @@ from src.constants import GWP_CH4, GWP_CO2, GWP_N2O
 def _get_llaf_values(
     load_factor: pd.Series, operating_mode: pd.Series, llaf_table: pd.DataFrame
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
-    """Look up LLAF values for CO2, N2O, and CH4 based on load factor.
-
-    Rules:
-        - %LF = LF * 100 (round to nearest integer)
-        - If %LF < 2 AND mode is Transit/Maneuver -> default to 2%
-        - If %LF > 20 -> LLAF = 1 for all gases
-        - Else -> lookup from llaf_table
-    """
+    """Look up LLAF values for CO2, N2O, and CH4 based on load factor."""
     lf_percent = (load_factor * 100).round().astype(int)
 
     active_modes = operating_mode.isin(["Transit", "Maneuver"])
@@ -51,12 +48,7 @@ def _build_cf_lookup(cf_table: pd.DataFrame) -> dict[str, dict[str, float]]:
 def calculate_emissions(
     df: pd.DataFrame, llaf_table: pd.DataFrame, cf_table: pd.DataFrame
 ) -> pd.DataFrame:
-    """Calculate emissions for main engine, aux engine, and aux boiler.
-
-    Formula: Emission_gas_machinery = LLAF_gas * Cf_gas * fuel_consumption_machinery
-
-    CO2eq = (1 * Total_CO2) + (265 * Total_N2O) + (28 * Total_CH4)
-    """
+    """Calculate emissions for main engine, aux engine, and aux boiler."""
     result = df.copy()
 
     llaf_co2, llaf_n2o, llaf_ch4 = _get_llaf_values(

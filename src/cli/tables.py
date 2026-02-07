@@ -13,16 +13,7 @@ def display_data_summary(
     llaf_rows: int,
     cf_rows: int,
 ) -> None:
-    """Display a summary table of loaded data.
-
-    Args:
-        ais_records: Number of AIS records loaded
-        unique_vessels: Number of unique vessels
-        fuel_types: Number of unique fuel types
-        fuel_type_names: List of fuel type names
-        llaf_rows: Number of LLAF table rows
-        cf_rows: Number of Cf table rows
-    """
+    """Display a summary table of loaded data."""
     if is_quiet():
         return
 
@@ -54,18 +45,7 @@ def display_optimization_result(
     total_fuel: float,
     fuel_types_count: int,
 ) -> None:
-    """Display a table with fleet optimization results.
-
-    Args:
-        solver_status: Status from the solver
-        fleet_size: Number of vessels in optimal fleet
-        total_cost: Total adjusted cost in USD
-        total_dwt: Total deadweight tonnage
-        avg_safety_score: Average safety score of fleet
-        total_co2eq: Total CO2 equivalent emissions
-        total_fuel: Total fuel consumption
-        fuel_types_count: Number of unique fuel types
-    """
+    """Display a table with fleet optimization results."""
     if is_quiet():
         return
 

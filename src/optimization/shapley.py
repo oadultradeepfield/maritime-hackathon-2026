@@ -1,4 +1,8 @@
-"""Shapley value decomposition for fleet optimization."""
+"""Shapley value decomposition for fleet optimization.
+
+Use compute_shapley_values() as the entry point. Implementation details
+(formulas, lookup rules) live in the code itself.
+"""
 
 import json
 import random
@@ -47,13 +51,7 @@ def _categorize_shapley_value(
     shapley_value: float,
     max_value: float,
 ) -> str:
-    """Categorize a vessel based on its Shapley value contribution.
-
-    Categories:
-        - essential: Top 20% of contribution
-        - useful: Middle 60% of contribution
-        - marginal: Bottom 20% of contribution
-    """
+    """Categorize a vessel based on its Shapley value contribution."""
     if max_value <= 0:
         return "marginal"
 
@@ -112,23 +110,6 @@ def compute_shapley_values(
 
     Uses sampling-based approximation with random permutations to estimate
     each vessel's marginal contribution to cost reduction.
-
-    The characteristic function v(S) returns the cost when using only vessels
-    in coalition S, or an infeasible penalty if constraints are not met.
-
-    Shapley value represents how much each vessel contributes to reducing
-    the total cost compared to not having that vessel.
-
-    Args:
-        vessel_df: DataFrame with vessel data
-        optimal_fleet_ids: List of vessel IDs in the optimal fleet
-        num_permutations: Number of random permutations for approximation
-        params: Optimization parameters (uses defaults if None)
-        on_progress: Optional callback(current, total) for progress updates
-        seed: Random seed for reproducibility
-
-    Returns:
-        List of ShapleyResult dictionaries sorted by Shapley value descending
     """
     if params is None:
         params = OptimizationParams()

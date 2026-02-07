@@ -20,10 +20,7 @@ def export_submission_csv(
     vessel_df: pd.DataFrame,
     output_dir: Path,
 ) -> None:
-    """Export competition submission CSV.
-
-    Creates submission.csv with the required fields per competition spec.
-    """
+    """Export competition submission CSV."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     selected = vessel_df[vessel_df["vessel_id"].isin(result.selected_vessel_ids)]
@@ -50,10 +47,7 @@ def export_fleet_result_json(
     vessel_df: pd.DataFrame,
     output_dir: Path,
 ) -> None:
-    """Export fleet result as JSON.
-
-    Creates fleet_result.json with optimal fleet summary and all vessels.
-    """
+    """Export fleet result as JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     selected_ids = set(result.selected_vessel_ids)
@@ -94,10 +88,7 @@ def export_fuel_type_summary_json(
     vessel_df: pd.DataFrame,
     output_dir: Path,
 ) -> None:
-    """Export fuel type summary as JSON.
-
-    Creates fuel_type_summary.json with aggregated stats per fuel type.
-    """
+    """Export fuel type summary as JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     agg = vessel_df.groupby("main_engine_fuel_type").agg(
@@ -135,10 +126,7 @@ def export_shapley_values_json(
     results: list[ShapleyResult],
     output_dir: Path,
 ) -> None:
-    """Export Shapley value analysis results as JSON.
-
-    Creates shapley_values.json with per-vessel Shapley values and summary.
-    """
+    """Export Shapley value analysis results as JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     total_shapley = sum(r["shapley_value"] for r in results)
@@ -165,10 +153,7 @@ def export_sensitivity_heatmap_json(
     cells: list[HeatmapCell],
     output_dir: Path,
 ) -> None:
-    """Export sensitivity heatmap results as JSON.
-
-    Creates sensitivity_heatmap.json with grid of optimization results.
-    """
+    """Export sensitivity heatmap results as JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     feasible_count = sum(1 for c in cells if c["feasible"])
@@ -193,10 +178,7 @@ def export_carbon_sensitivity_json(
     points: list[CarbonSensitivityPoint],
     output_dir: Path,
 ) -> None:
-    """Export carbon price sensitivity analysis results as JSON.
-
-    Creates carbon_sensitivity.json with results at different carbon prices.
-    """
+    """Export carbon price sensitivity analysis results as JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     output = {
@@ -215,10 +197,7 @@ def export_mcmc_results_json(
     results: list[MCMCResult],
     output_dir: Path,
 ) -> None:
-    """Export MCMC robustness analysis results as JSON.
-
-    Creates mcmc_robustness.json with vessel appearance frequencies.
-    """
+    """Export MCMC robustness analysis results as JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     essential_count = sum(1 for r in results if r["category"] == "essential")
